@@ -1,0 +1,5 @@
+immutable(string) COMPILERNAME    = "@NAME@";
+immutable(string) COMPILERVERSION = "@VERSION@";
+immutable(string) COMPILERLICENSE = "@LICENSE@";
+
+immutable(string) OUTPUTEXT = ".asm";
