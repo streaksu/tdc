@@ -1,5 +1,6 @@
-immutable(string) COMPILERNAME    = "@NAME@";
-immutable(string) COMPILERVERSION = "@VERSION@";
-immutable(string) COMPILERLICENSE = "@LICENSE@";
+module compiler;
 
-immutable(string) OUTPUTEXT = ".asm";
+immutable(string) NAME            = "@NAME@";
+immutable(string) VERSION         = "@VERSION@";
+immutable(string) LICENSE         = "@LICENSE@";
+immutable(string) OUTPUTEXTENSION = ".S";

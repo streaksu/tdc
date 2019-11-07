@@ -8,9 +8,9 @@ To build the compiler only a previous D compiler (`ldc` or `dmd`) is needed.
 
 The instructions for a UNIX-like system are the following:
 
-```
-meson build && cd build # Prepare the build directory
-ninja                   # Build the source, will make use of several cores.
-ninja test              # Test suites.
-ninja install           # Install if wanted, may require superuser permissions.
+```bash
+meson --buildtype=release build # Prepare the build directory.
+cd build && ninja               # Build the source.
+ninja test                      # Test suites.
+ninja install                   # Install, may require superuser permissions.
 ```

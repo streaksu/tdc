@@ -1,4 +1,4 @@
-project('tdc', 'd', version: '0.0.1-Hell', license: 'BSL-1.0')
+project('TDC', 'd', version: '0.0.1 FarBelow', license: 'BSL-1.0')
 
 add_global_arguments(
     ['-version=NoBackend', '-J=' + meson.source_root() + '/source/dmd/.'],
@@ -149,15 +149,14 @@ dmdSource = files(
 )
 
 source = files(
-    'source/utils/messages.d',
-
     meson.current_build_dir() + '/compiler.d',
-    'source/main.d',
-    'source/unit.d'
+
+    'source/utils/messages.d',
+    'source/main.d'
 )
 
 e = executable(
-    meson.project_name(),
+    meson.project_name().to_lower(),
     dmdSource, source,
     include_directories: include_directories('source'),
     install: true

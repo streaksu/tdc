@@ -1,5 +1,7 @@
-import std.stdio;
-import core.stdc.stdlib;
+module utils.messages;
+
+import std.stdio:        stderr;
+import core.stdc.stdlib: exit;
 
 private immutable(string) CMAGENTA;
 private immutable(string) CRED;
@@ -20,10 +22,10 @@ shared static this() {
 }
 
 void warning(string message) {
-    stderr.writefln("%sWarning:%s %s", CMAGENTA, CRESET, message);
+    stderr.writefln("%sWarning:%s %s.", CMAGENTA, CRESET, message);
 }
 
 void error(string message) {
-    stderr.writefln("%sError:%s %s", CRED, CRESET, message);
+    stderr.writefln("%sError:%s %s.", CRED, CRESET, message);
     exit(1);
 }
