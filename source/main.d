@@ -7,14 +7,8 @@ import core.stdc.stdlib: exit;
 import compiler:       NAME, VERSION, LICENSE, OUTPUTEXTENSION;
 import utils.messages: error;
 
-import dmd.mtype:        Type;
-import dmd.id:           Id;
-import dmd.dmodule:      Module;
-import dmd.expression:   Expression;
-import dmd.objc:         Objc;
-import dmd.builtin:      builtin_init;
-import dmd.filecache:    FileCache;
-import dmd.root.ctfloat: CTFloat;
+import frontend;
+import backend;
 
 void main(string[] args) {
     // Arguments that we get from commandline.
@@ -59,14 +53,14 @@ void main(string[] args) {
     if (target == "")
         target = "amd64";
 
-    // Initialize DMD, taken straight from the original at 'dmd/mars.d'.
-    Type._init();
-    Id.initialize();
-    Module._init();
-    // target._init(params);
-    Expression._init();
-    Objc._init();
-    builtin_init();
-    FileCache._init();
-    CTFloat.initialize();
+    // Do frontend processing.
+    auto ast = parseFile(source);
+
+    // Stop if we only have to parse.
+    if (onlyparse) {
+        return;
+    }
+
+    // Generate code to the output file.
+    outputTargetCode(ast, target, output);
 }

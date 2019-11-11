@@ -3,6 +3,7 @@ module utils.messages;
 import std.stdio:        stderr;
 import core.stdc.stdlib: exit;
 
+private immutable(string) CBOLD;
 private immutable(string) CMAGENTA;
 private immutable(string) CRED;
 private immutable(string) CRESET;
@@ -14,6 +15,7 @@ shared static this() {
 
         // Test if stderr (2) is a tty, to use fancy escape sequences.
         if (isatty(2)) {
+            CBOLD    = "\033[1m";
             CMAGENTA = "\033[1;35m";
             CRED     = "\033[1;31m";
             CRESET   = "\033[0m";
@@ -28,4 +30,9 @@ void warning(string message) {
 void error(string message) {
     stderr.writefln("%sError:%s %s.", CRED, CRESET, message);
     exit(1);
+}
+
+void error(string path, uint line, string msg) {
+    stderr.writef("%s%s(%u):%s ", CBOLD, path, line + 1, CRESET);
+    error(msg);
 }

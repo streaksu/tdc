@@ -1,7 +1,6 @@
 # TDC, the Tiny D Compiler
 
-TDC is a D compiler using the [DMD](https://dlang.org) frontend (v2.088.1) and
-a custom backend.
+TDC is a D compiler using a custom frontend and backend, aiming for simplicity.
 
 ## Building
 To build the compiler only a previous D compiler (`ldc` or `dmd`) is needed.
