@@ -1,2 +1,2 @@
-# Build dir
-build
+# Object files.
+/**/*.o

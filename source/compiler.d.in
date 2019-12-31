@@ -1,6 +1,0 @@
-module compiler;
-
-immutable(string) NAME            = "@NAME@";
-immutable(string) VERSION         = "@VERSION@";
-immutable(string) LICENSE         = "@LICENSE@";
-immutable(string) OUTPUTEXTENSION = ".S";

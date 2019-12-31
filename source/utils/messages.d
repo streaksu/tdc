@@ -1,11 +1,11 @@
 module utils.messages;
 
-import std.stdio:        stderr;
+import std.stdio: stderr;
 import core.stdc.stdlib: exit;
 
-private immutable(string) CMAGENTA;
-private immutable(string) CRED;
-private immutable(string) CRESET;
+private immutable string CMAGENTA;
+private immutable string CRED;
+private immutable string CRESET;
 
 shared static this() {
     // We will only use scape sequences in a POSIX system

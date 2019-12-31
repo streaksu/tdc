@@ -1,10 +1,10 @@
 module main;
 
-import std.stdio:        writefln;
-import std.getopt:       getopt, defaultGetoptPrinter;
+import std.stdio:        writeln, writefln;
+import std.getopt:       getopt, defaultGetoptPrinter, Option;
 import core.stdc.stdlib: exit;
 
-import compiler:       NAME, VERSION, LICENSE, OUTPUTEXTENSION;
+import compiler:       VERSION, OUTPUTEXTENSION;
 import utils.messages: error;
 
 import dmd.mtype:        Type;
@@ -16,26 +16,36 @@ import dmd.builtin:      builtin_init;
 import dmd.filecache:    FileCache;
 import dmd.root.ctfloat: CTFloat;
 
+private void printUsage(Option[] options) {
+    writeln("Usage:");
+    writeln("\ttdc [options] -c <source>");
+    writeln("");
+    defaultGetoptPrinter("Flags and options:", options);
+}
+
+private void printVersion() {
+    writefln("TDC D Compiler version %s.", VERSION);
+    writefln("Distributed under the BSL-1.0 license.");
+}
+
 void main(string[] args) {
     // Arguments that we get from commandline.
-    bool   vers;
+    bool vers;
     string source;
     string output;
-    bool   onlyparse;
-    string target;
+    bool oparse;
 
     try {
         auto cml = getopt(
             args,
-            "V",  "Print the version and targets",      &vers,
-            "c",  "Set a source file to compile",       &source,
-            "o",  "Set an output file for compilation", &output,
-            "op", "Only parse the source, no code gen", &onlyparse,
-            "t",  "Target for the compilation process", &target
+            "version|V", "Print the version and targets", &vers,
+            "c", "Set a source file to compile", &source,
+            "o", "Set an output file for compilation", &output,
+            "oparse", "Only parse the source, no code gen", &oparse
         );
 
         if (cml.helpWanted) {
-            defaultGetoptPrinter("Flags and options:", cml.options);
+            printUsage(cml.options);
             exit(0);
         }
     } catch (Exception e) {
@@ -44,20 +54,17 @@ void main(string[] args) {
 
     // Check the values we got.
     if (vers) {
-        writefln("The glorious %s compilation system", NAME);
-        writefln("Version '%s'", VERSION);
-        writefln("Distributed under the %s license.", LICENSE);
+        printVersion();
         exit(0);
     }
 
-    if (source == "")
+    if (source == "") {
         error("No source files were passed for compilation");
+    }
 
-    if (output == "")
+    if (output == "") {
         output = source ~ OUTPUTEXTENSION;
-    
-    if (target == "")
-        target = "amd64";
+    }
 
     // Initialize DMD, taken straight from the original at 'dmd/mars.d'.
     Type._init();

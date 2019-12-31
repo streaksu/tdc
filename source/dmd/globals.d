@@ -363,7 +363,7 @@ struct Global
 
     extern (C++) void _init()
     {
-        _version = "v2.088.1";
+        _version = import("VERSION") ~ '\0';
 
         version (MARS)
         {
