@@ -1,5 +1,6 @@
 module main;
 
+import std.string:       toStringz;
 import std.stdio:        writeln, writefln;
 import std.getopt:       getopt, defaultGetoptPrinter, Option;
 import core.stdc.stdlib: exit;
@@ -7,6 +8,9 @@ import core.stdc.stdlib: exit;
 import compiler:       VERSION, OUTPUTEXTENSION;
 import utils.messages: error;
 
+import dmd.globals:      global, Loc;
+import dmd.arraytypes:   Strings, Modules;
+import dmd.mars:         createModules;
 import dmd.mtype:        Type;
 import dmd.id:           Id;
 import dmd.dmodule:      Module;
@@ -26,6 +30,14 @@ private void printUsage(Option[] options) {
 private void printVersion() {
     writefln("TDC D Compiler version %s.", VERSION);
     writefln("Distributed under the BSL-1.0 license.");
+}
+
+private void setDMDOSGlobals() {
+    version (Windows) {
+        global.params.isWindows = true;
+    } else {
+        global.params.isLinux = true;
+    }
 }
 
 void main(string[] args) {
@@ -66,6 +78,9 @@ void main(string[] args) {
         output = source ~ OUTPUTEXTENSION;
     }
 
+    // Initialise some global variables for DMD.
+    setDMDOSGlobals();
+
     // Initialize DMD, taken straight from the original at 'dmd/mars.d'.
     Type._init();
     Id.initialize();
@@ -76,4 +91,18 @@ void main(string[] args) {
     builtin_init();
     FileCache._init();
     CTFloat.initialize();
+
+    // Parse files.
+    Strings dmdFiles;
+    Strings libModules;
+    dmdFiles.push(toStringz(source));
+    Modules mod = createModules(dmdFiles, libModules);
+    
+    auto mod1 = mod[0];
+    mod1.read(Loc.initial);
+    mod1.parse();
+
+    if (global.errors) {
+        exit(0);
+    }
 }

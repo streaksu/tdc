@@ -2,8 +2,8 @@
 EXE := tdc
 
 SOURCEDIR := source
-SOURCE := $(shell find $(SOURCEDIR) -type f -name '*.d')
-OBJ := $(SOURCE:.d=.o)
+SOURCE    := $(shell find $(SOURCEDIR) -type f -name '*.d')
+OBJ       := $(SOURCE:.d=.o)
 
 # User options.
 PREFIX  = /usr/local
