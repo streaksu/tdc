@@ -9,6 +9,7 @@ import compiler:       VERSION, OUTPUTEXTENSION;
 import utils.messages: error;
 
 import dmd.globals:      global, Loc;
+import dmd.target:       target;
 import dmd.arraytypes:   Strings, Modules;
 import dmd.mars:         createModules;
 import dmd.mtype:        Type;
@@ -19,6 +20,12 @@ import dmd.objc:         Objc;
 import dmd.builtin:      builtin_init;
 import dmd.filecache:    FileCache;
 import dmd.root.ctfloat: CTFloat;
+import dmd.root.array:   Array;
+import dmd.identifier:   Identifier;
+import dmd.dsymbolsem:   dsymbolSemantic;
+import dmd.semantic2:    semantic2;
+import dmd.semantic3:    semantic3;
+import dmd.inline:       inlineScanModule;
 
 private void printUsage(Option[] options) {
     writeln("Usage:");
@@ -32,12 +39,32 @@ private void printVersion() {
     writefln("Distributed under the BSL-1.0 license.");
 }
 
-private void setDMDOSGlobals() {
+private void initDMD() {
+    // Set path and version IDs.
+    global.path = new Array!(const(char)*);
+    global.versionids = new Array!Identifier;
+
+    // Set OS specific fields.
     version (Windows) {
         global.params.isWindows = true;
+        global.versionids.push(new Identifier("Windows"));
     } else {
         global.params.isLinux = true;
+        global.path.push("/usr/include/d");
+        global.path.push("/usr/include/d/druntime/import");
+        global.versionids.push(new Identifier("Posix"));
     }
+
+    // Initialize DMD, taken straight from the original at 'dmd/mars.d'.
+    Type._init();
+    Id.initialize();
+    Module._init();
+    target._init(global.params);
+    Expression._init();
+    Objc._init();
+    builtin_init();
+    FileCache._init();
+    CTFloat.initialize();
 }
 
 void main(string[] args) {
@@ -78,31 +105,29 @@ void main(string[] args) {
         output = source ~ OUTPUTEXTENSION;
     }
 
-    // Initialise some global variables for DMD.
-    setDMDOSGlobals();
+    // Initialise DMD's core.
+    initDMD();
 
-    // Initialize DMD, taken straight from the original at 'dmd/mars.d'.
-    Type._init();
-    Id.initialize();
-    Module._init();
-    // target._init(params);
-    Expression._init();
-    Objc._init();
-    builtin_init();
-    FileCache._init();
-    CTFloat.initialize();
-
-    // Parse files.
+    // Create modules for DMD.
     Strings dmdFiles;
     Strings libModules;
     dmdFiles.push(toStringz(source));
     Modules mod = createModules(dmdFiles, libModules);
-    
-    auto mod1 = mod[0];
-    mod1.read(Loc.initial);
-    mod1.parse();
 
-    if (global.errors) {
-        exit(0);
-    }
+    // Parse the module.
+    auto m = mod[0];
+    m.read(Loc.initial);
+    m.parse();
+
+    // Manage included modules.
+    m.importAll(null);
+
+    // Semantical analysis.
+    m.dsymbolSemantic(null);
+    m.semantic2(null);
+    m.semantic3(null);
+    Module.runDeferredSemantic3();
+
+    // Scan for functions to inline.
+    inlineScanModule(m);
 }
