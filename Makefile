@@ -30,9 +30,12 @@ all: $(OBJ)
 
 test:
 	./$(EXE) -c $(TESTDIR)/hello.d
+	./$(EXE) -c $(TESTDIR)/mandelbrot.d
 
 clean:
 	rm -f $(OBJ) $(EXE)
+	rm -f $(TESTDIR)/hello.d.S
+	rm -f $(TESTDIR)/mandelbrot.d.S
 
 install:
 	install -d $(DESTDIR)$(PREFIX)/bin

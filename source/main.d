@@ -2,6 +2,7 @@ module main;
 
 import std.string:       toStringz;
 import std.stdio:        writeln, writefln;
+import std.file:         write;
 import std.getopt:       getopt, defaultGetoptPrinter, Option;
 import core.stdc.stdlib: exit;
 
@@ -9,6 +10,7 @@ import compiler:       VERSION, OUTPUTEXTENSION;
 import utils.messages: error;
 
 import dmd.globals:      global, Loc;
+import dmd.cond:         VersionCondition;
 import dmd.target:       target;
 import dmd.arraytypes:   Strings, Modules;
 import dmd.mars:         createModules;
@@ -27,6 +29,8 @@ import dmd.semantic2:    semantic2;
 import dmd.semantic3:    semantic3;
 import dmd.inline:       inlineScanModule;
 
+import backend.emitasm: emitModuleASM;
+
 private void printUsage(Option[] options) {
     writeln("Usage:");
     writeln("\ttdc [options] -c <source>");
@@ -42,18 +46,24 @@ private void printVersion() {
 private void initDMD() {
     // Set path and version IDs.
     global.path = new Array!(const(char)*);
-    global.versionids = new Array!Identifier;
 
     // Set OS specific fields.
-    version (Windows) {
-        global.params.isWindows = true;
-        global.versionids.push(new Identifier("Windows"));
-    } else {
-        global.params.isLinux = true;
-        global.path.push("/usr/include/d");
-        global.path.push("/usr/include/d/druntime/import");
-        global.versionids.push(new Identifier("Posix"));
-    }
+    // TODO: Handling more than linux would be desirable.
+    global.params.isLinux = true;
+    global.path.push("/usr/include/d");
+    global.path.push("/usr/include/d/druntime/import");
+    VersionCondition.addPredefinedGlobalIdent("X86_64");
+    VersionCondition.addPredefinedGlobalIdent("AsmX86_64");
+    VersionCondition.addPredefinedGlobalIdent("TDC");
+    VersionCondition.addPredefinedGlobalIdent("DigitalMars"); // Workaround for some stdlib quirks.
+    VersionCondition.addPredefinedGlobalIdent("Posix");
+    VersionCondition.addPredefinedGlobalIdent("linux");
+    VersionCondition.addPredefinedGlobalIdent("ELFv1");
+    VersionCondition.addPredefinedGlobalIdent("CRuntime_Glibc");
+    VersionCondition.addPredefinedGlobalIdent("CppRuntime_Gcc");
+    VersionCondition.addPredefinedGlobalIdent("LittleEndian");
+    VersionCondition.addPredefinedGlobalIdent("D_Version2");
+    VersionCondition.addPredefinedGlobalIdent("all");
 
     // Initialize DMD, taken straight from the original at 'dmd/mars.d'.
     Type._init();
@@ -116,6 +126,8 @@ void main(string[] args) {
 
     // Parse the module.
     auto m = mod[0];
+    Module.rootModule = m;
+    m.importedFrom = m;
     m.read(Loc.initial);
     m.parse();
 
@@ -125,9 +137,18 @@ void main(string[] args) {
     // Semantical analysis.
     m.dsymbolSemantic(null);
     m.semantic2(null);
-    m.semantic3(null);
+    // m.semantic3(null); <- Segfaults.
     Module.runDeferredSemantic3();
 
     // Scan for functions to inline.
     inlineScanModule(m);
+
+    // Backend.
+    string gen = emitModuleASM(m);
+
+    try {
+        write(output, gen);
+    } catch (Exception) {
+        error("Could not write output file");
+    }
 }
